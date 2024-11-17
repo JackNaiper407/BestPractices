@@ -1,0 +1,106 @@
+‍1. Use Angular CLI
+‍Angular CLI is one of the most powerful accessibility tools available when developing apps with Angular. Angular CLI makes it easy to create an application and follows all the best practices! Angular CLI is a command-line interface tool that is used to initialize, develop, scaffold, maintain, and even test and debug Angular applications.So instead of creating the files and folders manually, use Angular CLI to generate new components, directives, modules, services, and pipes.# Install Angular CLI
+npm install -g @angular/cli
+# Check Angular CLI version
+ng version
+
+‍2. Maintain proper folder structure
+‍Creating a folder structure is an important factor we should consider before initiating our project. Our folder structure will easily adapt to the new changes during development.
+
+-- app
+|-- modules
+|-- home
+|-- [+] components
+|-- [+] pages
+|-- home-routing.module.ts
+|-- home.module.ts
+|-- core
+|-- [+] authentication
+|-- [+] footer
+|-- [+] guards
+|-- [+] http
+|-- [+] interceptors
+|-- [+] mocks
+|-- [+] services
+|-- [+] header
+|-- core.module.ts
+|-- ensureModuleLoadedOnceGuard.ts
+|-- logger.service.ts
+|
+|-- shared
+|-- [+] components
+|-- [+] directives
+|-- [+] pipes
+|-- [+] models
+|
+|-- [+] configs
+|-- assets
+|-- scss
+|-- [+] partials
+|-- _base.scss
+|-- styles.scss
+
+3. Follow consistent Angular coding styles
+‍To ensure a project adheres to proper coding standards, it's important to follow a set of guidelines that promote readability, maintainability, and consistency. Here are some essential rules to implement:
+
+- Limit files to 400 Lines of code.
+- Define small functions and limit them to no more than 75 lines.
+- Have consistent names for all symbols. The recommended pattern is feature.type.ts.
+- If the values of the variables are intact, then declare it with ‘const’.
+- Use dashes to separate words in the descriptive name and use dots to separate the descriptive name from the type.
+- Names of properties and methods should always be in lower camel case.
+- Always leave one empty line between imports and modules; such as third-party and application imports and third-party modules and custom modules.
+4. Typescript
+TypeScript is a superset of JavaScript, designed to develop large-scale JavaScript applications. You don’t have to convert the entire JavaScript code to TypeScript at once; migration can be done in stages. Major benefits of TypeScript include:
+
+Support for classes and modules
+Type-checking
+Access to ES6 and ES7 features before they are supported by major browsers
+Support for JavaScript packaging and so on
+Great tooling support with IntelliSense
+5. Use ES6 Features
+‍ECMAScript is constantly updated with new features and functionalities. Currently, ES6 offers many new features that can be utilized in Angular.
+
+Here are a few ES6 features:
+
+Arrow Functions
+String Interpolation
+Object Literals
+Let and Const
+Destructuring
+Default Parameters
+6. Use trackBy along with ngFor
+‍When using ngFor to loop over an array in templates, it is beneficial to use a trackBy function. This function returns a unique identifier for each DOM item, which helps Angular optimize rendering. Without trackBy, Angular re-renders the whole DOM tree when the array changes. By using trackBy, Angular can identify which element has changed and will only update that specific element in the DOM.
+
+Here is an example of how to use ngFor with trackBy:
+
+export class MyApp {
+
+  items: any[] = [];
+
+  getItems() {
+
+    // Load more items
+
+  }
+
+  trackByFn(index, item) {
+
+    return index; // or item.id
+
+  }
+
+}
+
+<div *ngFor="let item of items; trackBy: trackByFn">
+
+  {{ item }}
+
+</div>
+
+By returning a unique identifier for each item, trackBy ensures that only the updated items are re-rendered, enhancing performance and efficiency.
+
+‍7. Break down into small reusable components
+This principle can be seen as an extension of the Single Responsibility Principle. Large components are often difficult to debug, manage, and test. When a component becomes too large, it's beneficial to break it down into smaller, reusable components. This reduces code duplication and makes the application easier to manage, maintain, and debug with less effort.
+
+By following this approach, we can achieve more modular and maintainable code, improving the overall quality and performance of the application.

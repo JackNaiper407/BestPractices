@@ -7,14 +7,14 @@
     <!-- Selected Items (Pills) -->
     <div class="dropdown-selected" (click)="toggleDropdown()">
       <ng-container>
-        <!-- Display selected radio button with (x) marker -->
+        <!-- Display selected radio button with description and (x) marker -->
         <div class="pill" *ngIf="selectedRadio">
-          {{ selectedRadio }}
+          {{ getDescription(selectedRadio) }}
           <button class="close-btn" (click)="deselectRadio($event)">×</button>
         </div>
-        <!-- Display selected checkboxes with (x) markers -->
+        <!-- Display selected checkboxes with description and (x) markers -->
         <div class="pill" *ngFor="let checkbox of selectedCheckboxes">
-          {{ checkbox }}
+          {{ getDescription(checkbox) }}
           <button class="close-btn" (click)="toggleCheckbox(checkbox); $event.stopPropagation()">×</button>
         </div>
       </ng-container>
@@ -149,6 +149,13 @@ export class DropdownComponent implements ControlValueAccessor {
     this.propagateChange();
   }
 
+  getDescription(value: string): string {
+    const option =
+      this.radioOptions.find((opt) => opt.value === value) ||
+      this.checkboxOptions.find((opt) => opt.value === value);
+    return option?.description || value;
+  }
+
   private propagateChange(): void {
     const result: string[] = [];
     if (this.selectedRadio) {
@@ -156,9 +163,23 @@ export class DropdownComponent implements ControlValueAccessor {
     }
     result.push(...Array.from(this.selectedCheckboxes));
     this.onChange(result);
-    this.onSelectionChange.emit(result); // Emit the selection change event
+    this.onSelectionChange.emit(result);
   }
 }
+
+
+
+
+
+
+
+
+/**
+ * Get the description for a given value from the radio or checkbox options.
+ */
+
+
+
 
 
 ---------------------------------------------------------------------

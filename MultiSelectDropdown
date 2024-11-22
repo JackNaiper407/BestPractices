@@ -1,0 +1,266 @@
+<div class="dropdown-container">
+  <!-- Dropdown Label -->
+  <label class="dropdown-label">{{ label }}</label>
+
+  <!-- Dropdown Wrapper -->
+  <div class="dropdown" [class.open]="isDropdownOpen" (mouseleave)="closeDropdown()">
+    <!-- Selected Items (Pills) -->
+    <div class="dropdown-selected" (click)="toggleDropdown()">
+      <ng-container>
+        <!-- Display selected radio button with (x) marker -->
+        <div class="pill" *ngIf="selectedRadio">
+          {{ selectedRadio }}
+          <button class="close-btn" (click)="deselectRadio($event)">×</button>
+        </div>
+        <!-- Display selected checkboxes with (x) markers -->
+        <div class="pill" *ngFor="let checkbox of selectedCheckboxes">
+          {{ checkbox }}
+          <button class="close-btn" (click)="toggleCheckbox(checkbox); $event.stopPropagation()">×</button>
+        </div>
+      </ng-container>
+      <span *ngIf="!selectedRadio && selectedCheckboxes.size === 0">Select...</span>
+      <span class="arrow">▼</span>
+    </div>
+
+    <!-- Dropdown Options -->
+    <div class="dropdown-options" *ngIf="isDropdownOpen">
+      <!-- Radio Button Options -->
+      <ng-container *ngFor="let option of radioOptions">
+        <div class="option">
+          <label>
+            <input
+              type="radio"
+              [name]="'radio-group'"
+              [value]="option.value"
+              [checked]="selectedRadio === option.value"
+              (change)="selectRadio(option.value)"
+            />
+            {{ option.value }}
+          </label>
+        </div>
+      </ng-container>
+
+      <!-- Separator -->
+      <hr class="separator" *ngIf="radioOptions.length > 0 && checkboxOptions.length > 0" />
+
+      <!-- Checkbox Options -->
+      <ng-container *ngFor="let option of checkboxOptions">
+        <div class="option">
+          <label>
+            <input
+              type="checkbox"
+              [checked]="selectedCheckboxes.has(option.value)"
+              (change)="toggleCheckbox(option.value)"
+            />
+            {{ option.value }}
+          </label>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</div>
+
+
+----------------------------------------------------------------
+
+
+
+import { Component, Input, Output, EventEmitter, forwardRef } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+
+export interface DataOption {
+  value: string;
+  description: string;
+}
+
+@Component({
+  selector: 'app-dropdown',
+  templateUrl: './dropdown.component.html',
+  styleUrls: ['./dropdown.component.css'],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => DropdownComponent),
+      multi: true,
+    },
+  ],
+})
+export class DropdownComponent implements ControlValueAccessor {
+  @Input() label: string = 'Dropdown';
+  @Input() radioOptions: DataOption[] = [];
+  @Input() checkboxOptions: DataOption[] = [];
+
+  @Output() onSelectionChange = new EventEmitter<string[]>(); // Event emitter
+
+  selectedRadio: string | null = null;
+  selectedCheckboxes: Set<string> = new Set<string>();
+  isDropdownOpen: boolean = false;
+
+  private onChange: (value: string[]) => void = () => {};
+  private onTouched: () => void = () => {};
+
+  writeValue(value: string[]): void {
+    if (Array.isArray(value)) {
+      this.selectedRadio = value.find((v) =>
+        this.radioOptions.some((option) => option.value === v)
+      ) || null;
+      this.selectedCheckboxes = new Set(
+        value.filter((v) => this.checkboxOptions.some((option) => option.value === v))
+      );
+    } else {
+      this.selectedRadio = null;
+      this.selectedCheckboxes.clear();
+    }
+  }
+
+  registerOnChange(fn: (value: string[]) => void): void {
+    this.onChange = fn;
+  }
+
+  registerOnTouched(fn: () => void): void {
+    this.onTouched = fn;
+  }
+
+  toggleDropdown(): void {
+    this.isDropdownOpen = !this.isDropdownOpen;
+  }
+
+  closeDropdown(): void {
+    this.isDropdownOpen = false;
+    this.onTouched();
+  }
+
+  selectRadio(optionValue: string): void {
+    this.selectedRadio = optionValue;
+    this.propagateChange();
+  }
+
+  deselectRadio(event: MouseEvent): void {
+    event.stopPropagation();
+    this.selectedRadio = null;
+    this.propagateChange();
+  }
+
+  toggleCheckbox(optionValue: string): void {
+    if (this.selectedCheckboxes.has(optionValue)) {
+      this.selectedCheckboxes.delete(optionValue);
+    } else {
+      this.selectedCheckboxes.add(optionValue);
+    }
+    this.propagateChange();
+  }
+
+  private propagateChange(): void {
+    const result: string[] = [];
+    if (this.selectedRadio) {
+      result.push(this.selectedRadio);
+    }
+    result.push(...Array.from(this.selectedCheckboxes));
+    this.onChange(result);
+    this.onSelectionChange.emit(result); // Emit the selection change event
+  }
+}
+
+
+
+---------------------------------------------------------------------
+
+
+/* General Container */
+.dropdown-container {
+  width: 100%;
+  max-width: 300px;
+  font-family: Arial, sans-serif;
+  margin-bottom: 16px;
+}
+
+/* Label */
+.dropdown-label {
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: block;
+}
+
+/* Dropdown */
+.dropdown {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px;
+  background-color: #fff;
+  position: relative;
+  cursor: pointer;
+  transition: border-color 0.3s;
+  width: 400px;
+}
+
+.dropdown.open {
+  border-color: #007bff;
+}
+
+.dropdown-selected {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Pills */
+.pill {
+  background: #007bff;
+  color: white;
+  padding: 4px 8px;
+  margin: 4px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.pill .close-btn {
+  margin-left: 8px;
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.arrow {
+  margin-left: auto;
+  font-size: 14px;
+  color: #888;
+}
+
+/* Dropdown Options */
+.dropdown-options {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 8px 0;
+  display: block;
+}
+
+.option {
+  padding: 8px 12px;
+}
+
+.option:hover {
+  background: #f8f9fa;
+}
+
+input[type='radio'],
+input[type='checkbox'] {
+  margin-right: 8px;
+}
+
+.separator {
+  border: 0;
+  height: 1px;
+  background: #e0e0e0; /* Light gray line */
+  margin: 8px 0;
+}

@@ -35,7 +35,7 @@
               [checked]="selectedRadio === option.value"
               (change)="selectRadio(option.value)"
             />
-            {{ option.value }}
+            {{ option.description }}
           </label>
         </div>
       </ng-container>
@@ -52,14 +52,13 @@
               [checked]="selectedCheckboxes.has(option.value)"
               (change)="toggleCheckbox(option.value)"
             />
-            {{ option.value }}
+            {{ option.description }}
           </label>
         </div>
       </ng-container>
     </div>
   </div>
 </div>
-
 
 ----------------------------------------------------------------
 
@@ -90,7 +89,7 @@ export class DropdownComponent implements ControlValueAccessor {
   @Input() radioOptions: DataOption[] = [];
   @Input() checkboxOptions: DataOption[] = [];
 
-  @Output() onSelectionChange = new EventEmitter<string[]>(); // Event emitter
+  @Output() onSelectionChange = new EventEmitter<string[]>(); // Event emitter for selected values
 
   selectedRadio: string | null = null;
   selectedCheckboxes: Set<string> = new Set<string>();
@@ -160,7 +159,6 @@ export class DropdownComponent implements ControlValueAccessor {
     this.onSelectionChange.emit(result); // Emit the selection change event
   }
 }
-
 
 
 ---------------------------------------------------------------------

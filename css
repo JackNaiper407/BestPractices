@@ -1,30 +1,60 @@
-/* Hide the default radio button */
-input[type="radio"] {
-  display: none;
-}
-
-/* Style for the label acting as the custom radio button */
-label {
-  width: 20px; /* Outer circle size */
-  height: 20px;
-  border: 2px solid #000; /* Border color for the outer circle */
-  border-radius: 50%; /* Makes the outer circle round */
+/* General styling for inputs */
+input[type='radio'],
+input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  outline: none;
+  width: 16px;
+  height: 16px;
+  border: 2px solid black;
+  border-radius: 50%; /* For radio buttons (circle) */
   display: inline-block;
   position: relative;
   cursor: pointer;
-  margin-right: 10px; /* Spacing between radio buttons */
-  transition: all 0.3s ease; /* Smooth transition */
+  margin-right: 8px;
+  background-color: transparent;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
-/* Add the inner blue circle when the radio button is selected */
-input[type="radio"]:checked + label::after {
+/* Radio button styling */
+input[type='radio'] {
+  border-radius: 50%; /* Circle for radio */
+}
+
+input[type='radio']:checked {
+  background-color: black; /* Inner circle becomes black */
+}
+
+input[type='radio']:checked::after {
   content: '';
-  width: 12px; /* Inner circle size */
-  height: 12px;
-  background-color: blue; /* Inner circle color */
-  border-radius: 50%; /* Makes the inner circle round */
+  width: 8px;
+  height: 8px;
+  background: black;
+  border-radius: 50%;
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+/* Checkbox styling */
+input[type='checkbox'] {
+  border-radius: 4px; /* Square for checkbox */
+}
+
+input[type='checkbox']:checked {
+  background-color: black; /* Inner tick becomes black */
+}
+
+input[type='checkbox']:checked::after {
+  content: '';
+  width: 4px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  position: absolute;
+  top: 2px;
+  left: 6px;
+  transform: rotate(45deg);
 }

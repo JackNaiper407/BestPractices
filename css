@@ -1,0 +1,30 @@
+/* Hide the default radio button */
+input[type="radio"] {
+  display: none;
+}
+
+/* Style for the label acting as the custom radio button */
+label {
+  width: 20px; /* Outer circle size */
+  height: 20px;
+  border: 2px solid #000; /* Border color for the outer circle */
+  border-radius: 50%; /* Makes the outer circle round */
+  display: inline-block;
+  position: relative;
+  cursor: pointer;
+  margin-right: 10px; /* Spacing between radio buttons */
+  transition: all 0.3s ease; /* Smooth transition */
+}
+
+/* Add the inner blue circle when the radio button is selected */
+input[type="radio"]:checked + label::after {
+  content: '';
+  width: 12px; /* Inner circle size */
+  height: 12px;
+  background-color: blue; /* Inner circle color */
+  border-radius: 50%; /* Makes the inner circle round */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}

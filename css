@@ -1,60 +1,147 @@
-/* General styling for inputs */
-input[type='radio'],
-input[type='checkbox'] {
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  outline: none;
-  width: 16px;
-  height: 16px;
-  border: 2px solid black;
-  border-radius: 50%; /* For radio buttons (circle) */
-  display: inline-block;
-  position: relative;
-  cursor: pointer;
-  margin-right: 8px;
-  background-color: transparent;
-  transition: background-color 0.3s ease, border-color 0.3s ease;
-}
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ReactiveFormsModule, FormControl } from '@angular/forms';
+import { DropdownComponent, DataOption } from './dropdown.component';
+import { By } from '@angular/platform-browser';
 
-/* Radio button styling */
-input[type='radio'] {
-  border-radius: 50%; /* Circle for radio */
-}
+describe('DropdownComponent', () => {
+  let component: DropdownComponent;
+  let fixture: ComponentFixture<DropdownComponent>;
 
-input[type='radio']:checked {
-  background-color: black; /* Inner circle becomes black */
-}
+  const radioOptions: DataOption[] = [
+    { value: 'radio1', description: 'Radio Option 1' },
+    { value: 'radio2', description: 'Radio Option 2' },
+  ];
 
-input[type='radio']:checked::after {
-  content: '';
-  width: 8px;
-  height: 8px;
-  background: black;
-  border-radius: 50%;
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-}
+  const checkboxOptions: DataOption[] = [
+    { value: 'check1', description: 'Checkbox Option 1' },
+    { value: 'check2', description: 'Checkbox Option 2' },
+  ];
 
-/* Checkbox styling */
-input[type='checkbox'] {
-  border-radius: 4px; /* Square for checkbox */
-}
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [DropdownComponent],
+      imports: [ReactiveFormsModule],
+    }).compileComponents();
 
-input[type='checkbox']:checked {
-  background-color: black; /* Inner tick becomes black */
-}
+    fixture = TestBed.createComponent(DropdownComponent);
+    component = fixture.componentInstance;
 
-input[type='checkbox']:checked::after {
-  content: '';
-  width: 4px;
-  height: 8px;
-  border: solid white;
-  border-width: 0 2px 2px 0;
-  position: absolute;
-  top: 2px;
-  left: 6px;
-  transform: rotate(45deg);
-}
+    component.radioOptions = radioOptions;
+    component.checkboxOptions = checkboxOptions;
+
+    fixture.detectChanges();
+  });
+});
+
+
+
+
+it('should create the component', () => {
+  expect(component).toBeTruthy();
+});
+
+
+it('should initialize with no selection', () => {
+  expect(component.selectedRadio).toBeNull();
+  expect(component.selectedCheckboxes.size).toBe(0);
+});
+
+
+it('should select a radio button and emit the value', () => {
+  spyOn(component.onSelectionChange, 'emit');
+
+  const radioInput = fixture.debugElement.query(By.css('input[type="radio"][value="radio1"]'));
+  radioInput.nativeElement.click();
+  fixture.detectChanges();
+
+  expect(component.selectedRadio).toBe('radio1');
+  expect(component.onSelectionChange.emit).toHaveBeenCalledWith(['radio1']);
+});
+
+
+it('should select a checkbox and emit the value', () => {
+  spyOn(component.onSelectionChange, 'emit');
+
+  const checkboxInput = fixture.debugElement.query(By.css('input[type="checkbox"][value="check1"]'));
+  checkboxInput.nativeElement.click();
+  fixture.detectChanges();
+
+  expect(component.selectedCheckboxes.has('check1')).toBeTrue();
+  expect(component.onSelectionChange.emit).toHaveBeenCalledWith(['check1']);
+});
+
+
+it('should allow selecting a radio button and checkboxes simultaneously', () => {
+  spyOn(component.onSelectionChange, 'emit');
+
+  const radioInput = fixture.debugElement.query(By.css('input[type="radio"][value="radio1"]'));
+  radioInput.nativeElement.click();
+
+  const checkboxInput = fixture.debugElement.query(By.css('input[type="checkbox"][value="check1"]'));
+  checkboxInput.nativeElement.click();
+
+  fixture.detectChanges();
+
+  expect(component.selectedRadio).toBe('radio1');
+  expect(component.selectedCheckboxes.has('check1')).toBeTrue();
+  expect(component.onSelectionChange.emit).toHaveBeenCalledWith(['radio1', 'check1']);
+});
+
+
+it('should deselect a checkbox and emit the updated value', () => {
+  spyOn(component.onSelectionChange, 'emit');
+
+  component.selectedCheckboxes.add('check1');
+  fixture.detectChanges();
+
+  const checkboxInput = fixture.debugElement.query(By.css('input[type="checkbox"][value="check1"]'));
+  checkboxInput.nativeElement.click();
+  fixture.detectChanges();
+
+  expect(component.selectedCheckboxes.has('check1')).toBeFalse();
+  expect(component.onSelectionChange.emit).toHaveBeenCalledWith([]);
+});
+
+
+it('should deselect the radio button and emit the updated value', () => {
+  spyOn(component.onSelectionChange, 'emit');
+
+  component.selectedRadio = 'radio1';
+  fixture.detectChanges();
+
+  component.deselectRadio(new MouseEvent('click'));
+  fixture.detectChanges();
+
+  expect(component.selectedRadio).toBeNull();
+  expect(component.onSelectionChange.emit).toHaveBeenCalledWith([]);
+});
+
+
+it('should update the component state with writeValue', () => {
+  const value = ['radio2', 'check1'];
+
+  component.writeValue(value);
+  fixture.detectChanges();
+
+  expect(component.selectedRadio).toBe('radio2');
+  expect(component.selectedCheckboxes.has('check1')).toBeTrue();
+});
+
+it('should integrate with FormControl and update the value', () => {
+  const formControl = new FormControl();
+
+  component.registerOnChange(formControl.setValue.bind(formControl));
+  component.selectRadio('radio1');
+  component.toggleCheckbox('check1');
+
+  expect(formControl.value).toEqual(['radio1', 'check1']);
+});
+
+it('should emit the updated selection on checkbox toggle', () => {
+  spyOn(component.onSelectionChange, 'emit');
+
+  component.toggleCheckbox('check2');
+  fixture.detectChanges();
+
+  expect(component.onSelectionChange.emit).toHaveBeenCalledWith(['check2']);
+});

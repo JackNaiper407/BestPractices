@@ -15,7 +15,7 @@
       }
 
       <!-- Selected Checkbox Pills -->
-      @for (let checkbox of selectedCheckboxes) {
+      @for (checkbox of selectedCheckboxes; track checkbox) {
         <div class="pill">
           {{ getDescription(checkbox) }}
           <button
@@ -39,7 +39,7 @@
         @defer {
           <!-- Radio Options -->
           @if (radioOptions.length > 0) {
-            @for (let option of radioOptions) {
+            @for (option of radioOptions; track option) {
               <div class="option-wrapper">
                 <div class="option">
                   <label>
@@ -64,7 +64,7 @@
 
           <!-- Checkbox Options -->
           @if (checkboxOptions.length > 0) {
-            @for (let option of checkboxOptions) {
+            @for (option of checkboxOptions; track option) {
               <div class="option-wrapper">
                 <div class="option">
                   <label>

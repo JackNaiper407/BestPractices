@@ -7,9 +7,9 @@
     <!-- Dropdown Selected Area -->
     <div class="dropdown-selected" (click)="toggleDropdown()">
       <!-- Selected Radio Pill -->
-      @if (selectedRadio as radio) {
+      @if (selectedRadio) {
         <div class="pill">
-          {{ getDescription(radio) }}
+          {{ getDescription(selectedRadio) }}
           <button class="close-btn" (click)="deselectRadio($event)">×</button>
         </div>
       }

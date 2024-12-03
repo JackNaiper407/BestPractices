@@ -6,7 +6,7 @@ import {
   OnInit,
   OnDestroy,
 } from '@angular/core';
-import { FormGroup, FormBuilder } from '@angular/forms';
+import { FormGroup, FormControl } from '@angular/forms';
 import { forkJoin, Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ProgramService } from './../../../../shared/services/program.service';
@@ -34,7 +34,6 @@ export class EnrollmentLandingComponent implements OnInit, OnDestroy {
 
   constructor(
     private programService: ProgramService,
-    private fb: FormBuilder,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -48,8 +47,9 @@ export class EnrollmentLandingComponent implements OnInit, OnDestroy {
   }
 
   private initializeForm(): void {
-    this.customerEnrollmentDataForm = this.fb.group({
-      enrollmentSetting: this.fb.group({}),
+    // Manually initialize the form group without FormBuilder
+    this.customerEnrollmentDataForm = new FormGroup({
+      enrollmentSetting: new FormGroup({}),
     });
   }
 
@@ -103,9 +103,6 @@ export class EnrollmentLandingComponent implements OnInit, OnDestroy {
     return new Observable<never>();
   }
 }
-
-
-
 
 
 

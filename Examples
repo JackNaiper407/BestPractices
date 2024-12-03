@@ -1,123 +1,86 @@
-import {
-  ChangeDetectionStrategy,
-  ChangeDetectorRef,
-  Component,
-  Input,
-  OnInit,
-  OnDestroy,
-} from '@angular/core';
-import { FormGroup, FormControl } from '@angular/forms';
-import { forkJoin, Observable } from 'rxjs';
-import { catchError } from 'rxjs/operators';
-import { ProgramService } from './../../../../shared/services/program.service';
-import { SubSink } from 'subsink';
-import { ODataResponse } from './../../../../shared/models/odata-response.model';
-import { ProgramData } from './model/program-data.model';
-import { DataOption } from './../../shared/models/data-option';
-import { CustomerEnrollmentDataForm } from './model/customer-enrollment-data.model';
+<div class="dropdown-container">
+  <div
+    class="dropdown"
+    [class.invalid-border]="invalid"
+    (mouseleave)="closeDropdown()"
+  >
+    <!-- Dropdown Selected Area -->
+    <div class="dropdown-selected" (click)="toggleDropdown()">
+      <!-- Selected Radio Pill -->
+      @if (selectedRadio as radio) {
+        <div class="pill">
+          {{ getDescription(radio) }}
+          <button class="close-btn" (click)="deselectRadio($event)">×</button>
+        </div>
+      }
 
-@Component({
-  selector: 'app-enrollment-landing',
-  templateUrl: './enrollment-landing.component.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-})
-export class EnrollmentLandingComponent implements OnInit, OnDestroy {
-  @Input() programId: number = 30;
+      <!-- Selected Checkbox Pills -->
+      @for (let checkbox of selectedCheckboxes) {
+        <div class="pill">
+          {{ getDescription(checkbox) }}
+          <button
+            class="close-btn"
+            (click)="toggleCheckbox(checkbox); $event.stopPropagation()"
+          >
+            ×
+          </button>
+        </div>
+      }
 
-  customerEnrollmentDataForm!: FormGroup;
-  orderTypes: DataOption[] = [];
-  formularyTypes: DataOption[] = [];
-  contractEndActions: DataOption[] = [];
-  billingTypes: DataOption[] = [];
+      <!-- Placeholder Arrow -->
+      @if (!selectedRadio && selectedCheckboxes.size === 0) {
+        <span class="arrow">▼</span>
+      }
+    </div>
 
-  private subscriptions = new SubSink();
+    <!-- Dropdown Options -->
+    @if (isDropdownOpen) {
+      <div class="dropdown-options">
+        @defer {
+          <!-- Radio Options -->
+          @if (radioOptions.length > 0) {
+            @for (let option of radioOptions) {
+              <div class="option-wrapper">
+                <div class="option">
+                  <label>
+                    <input
+                      type="radio"
+                      name="radio-group"
+                      [value]="option.value"
+                      [checked]="selectedRadio === option.value"
+                      (change)="selectRadio(option.value)"
+                    />
+                    <div class="option-text">{{ option.description }}</div>
+                  </label>
+                </div>
+              </div>
+            }
+          }
 
-  constructor(
-    private programService: ProgramService,
-    private cdr: ChangeDetectorRef
-  ) {}
+          <!-- Separator Between Radio and Checkbox Options -->
+          @if (radioOptions.length > 0 && checkboxOptions.length > 0) {
+            <hr class="separator" />
+          }
 
-  ngOnInit(): void {
-    this.initializeForm();
-    this.loadProgramData();
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
-  }
-
-  private initializeForm(): void {
-    // Manually initialize the form group without FormBuilder
-    this.customerEnrollmentDataForm = new FormGroup({
-      enrollmentSetting: new FormGroup({}),
-    });
-  }
-
-  private loadProgramData(): void {
-    const programResponse = this.programService
-      .getProgramDataById(this.programId)
-      .pipe(catchError((err) => this.handleError('Program Data', err)));
-    const orderTypeResponse = this.programService
-      .getOrderTypesLookupList()
-      .pipe(catchError((err) => this.handleError('Order Types Lookup', err)));
-
-    forkJoin([programResponse, orderTypeResponse]).subscribe({
-      next: ([programData, orderTypesLookup]) => {
-        if (programData?.value?.length && orderTypesLookup?.value?.length) {
-          this.updateData(programData.value[0], orderTypesLookup.value);
-          this.cdr.detectChanges();
+          <!-- Checkbox Options -->
+          @if (checkboxOptions.length > 0) {
+            @for (let option of checkboxOptions) {
+              <div class="option-wrapper">
+                <div class="option">
+                  <label>
+                    <input
+                      type="checkbox"
+                      [checked]="selectedCheckboxes.has(option.value)"
+                      (change)="toggleCheckbox(option.value)"
+                    />
+                    <div class="option-text">{{ option.description }}</div>
+                  </label>
+                </div>
+              </div>
+            }
+          }
         }
-      },
-      error: (err) => {
-        console.error('Error loading data:', err);
-      },
-    });
-  }
-
-  private updateData(program: any, orderTypes: any[]): void {
-    this.formularyTypes = program.programFormularies?.map(
-      (formulary: any) => ({
-        value: formulary.programFormularyId.toString(),
-        description: formulary.programFormularyName.toString(),
-      } as DataOption)
-    ) || [];
-
-    this.orderTypes = orderTypes.map((type: any) => ({
-      value: type.orderTypeCode,
-      description: type.orderTypeName,
-      isSelected: program.programOrderTypes?.includes(type.orderTypeCode),
-    }));
-
-    this.contractEndActions = [
-      { value: '01', description: 'Autoship' },
-      { value: '02', description: 'Move to fairshare' },
-    ];
-
-    this.billingTypes = [
-      { value: '01', description: 'Fee based on purchase volume (non-sourced)' },
-    ];
-  }
-
-  private handleError(source: string, error: any): Observable<never> {
-    console.error(`Error fetching ${source}:`, error);
-    return new Observable<never>();
-  }
-}
-
-
-
-
-
-<form *ngIf="customerEnrollmentDataForm" [formGroup]="customerEnrollmentDataForm">
-  <div class="flex-column gap-xlarge padding-xlarge">
-    <div class="font-headline-3">Customer Enrollment:</div>
-    <app-enrollment-settings
-      *ngIf="customerEnrollmentDataForm?.controls?.enrollmentSetting"
-      [customerEnrollmentSettingForm]="customerEnrollmentDataForm.controls.enrollmentSetting"
-      [formularyTypeOptions]="formularyTypes"
-      [orderTypeOptions]="orderTypes"
-      [contractEndActionOptions]="contractEndActions"
-      [billingTypeOptions]="billingTypes"
-    ></app-enrollment-settings>
+      </div>
+    }
   </div>
-</form>
+</div>

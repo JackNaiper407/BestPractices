@@ -1,0 +1,126 @@
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  Input,
+  OnInit,
+  OnDestroy,
+} from '@angular/core';
+import { FormGroup, FormBuilder } from '@angular/forms';
+import { forkJoin, Observable } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { ProgramService } from './../../../../shared/services/program.service';
+import { SubSink } from 'subsink';
+import { ODataResponse } from './../../../../shared/models/odata-response.model';
+import { ProgramData } from './model/program-data.model';
+import { DataOption } from './../../shared/models/data-option';
+import { CustomerEnrollmentDataForm } from './model/customer-enrollment-data.model';
+
+@Component({
+  selector: 'app-enrollment-landing',
+  templateUrl: './enrollment-landing.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class EnrollmentLandingComponent implements OnInit, OnDestroy {
+  @Input() programId: number = 30;
+
+  customerEnrollmentDataForm!: FormGroup;
+  orderTypes: DataOption[] = [];
+  formularyTypes: DataOption[] = [];
+  contractEndActions: DataOption[] = [];
+  billingTypes: DataOption[] = [];
+
+  private subscriptions = new SubSink();
+
+  constructor(
+    private programService: ProgramService,
+    private fb: FormBuilder,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
+    this.initializeForm();
+    this.loadProgramData();
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+  }
+
+  private initializeForm(): void {
+    this.customerEnrollmentDataForm = this.fb.group({
+      enrollmentSetting: this.fb.group({}),
+    });
+  }
+
+  private loadProgramData(): void {
+    const programResponse = this.programService
+      .getProgramDataById(this.programId)
+      .pipe(catchError((err) => this.handleError('Program Data', err)));
+    const orderTypeResponse = this.programService
+      .getOrderTypesLookupList()
+      .pipe(catchError((err) => this.handleError('Order Types Lookup', err)));
+
+    forkJoin([programResponse, orderTypeResponse]).subscribe({
+      next: ([programData, orderTypesLookup]) => {
+        if (programData?.value?.length && orderTypesLookup?.value?.length) {
+          this.updateData(programData.value[0], orderTypesLookup.value);
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => {
+        console.error('Error loading data:', err);
+      },
+    });
+  }
+
+  private updateData(program: any, orderTypes: any[]): void {
+    this.formularyTypes = program.programFormularies?.map(
+      (formulary: any) => ({
+        value: formulary.programFormularyId.toString(),
+        description: formulary.programFormularyName.toString(),
+      } as DataOption)
+    ) || [];
+
+    this.orderTypes = orderTypes.map((type: any) => ({
+      value: type.orderTypeCode,
+      description: type.orderTypeName,
+      isSelected: program.programOrderTypes?.includes(type.orderTypeCode),
+    }));
+
+    this.contractEndActions = [
+      { value: '01', description: 'Autoship' },
+      { value: '02', description: 'Move to fairshare' },
+    ];
+
+    this.billingTypes = [
+      { value: '01', description: 'Fee based on purchase volume (non-sourced)' },
+    ];
+  }
+
+  private handleError(source: string, error: any): Observable<never> {
+    console.error(`Error fetching ${source}:`, error);
+    return new Observable<never>();
+  }
+}
+
+
+
+
+
+
+
+
+<form *ngIf="customerEnrollmentDataForm" [formGroup]="customerEnrollmentDataForm">
+  <div class="flex-column gap-xlarge padding-xlarge">
+    <div class="font-headline-3">Customer Enrollment:</div>
+    <app-enrollment-settings
+      *ngIf="customerEnrollmentDataForm?.controls?.enrollmentSetting"
+      [customerEnrollmentSettingForm]="customerEnrollmentDataForm.controls.enrollmentSetting"
+      [formularyTypeOptions]="formularyTypes"
+      [orderTypeOptions]="orderTypes"
+      [contractEndActionOptions]="contractEndActions"
+      [billingTypeOptions]="billingTypes"
+    ></app-enrollment-settings>
+  </div>
+</form>

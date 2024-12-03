@@ -1,64 +1,198 @@
-<div class="dropdown-container">
-  <div class="dropdown" [class.invalid-border]="invalid" (mouseleave)="closeDropdown()">
-    <div class="dropdown-selected" (click)="toggleDropdown()">
-      <ng-container>
-        @if (selectedRadio) {
-          <div class="pill">
-            {{ getDescription(selectedRadio) }}
-            <button class="close-btn" (click)="deselectRadio($event)">×</button>
-          </div>
-        }
-        @for (checkbox of selectedCheckboxes; track checkbox) {
-          <div class="pill">
-            {{ getDescription(checkbox) }}
-            <button
-              class="close-btn"
-              (click)="toggleCheckbox(checkbox); $event.stopPropagation()"
-            >
-              ×
-            </button>
-          </div>
-        }
-        @if (!selectedRadio && selectedCheckboxes.size === 0) {
-          <span class="arrow">▼</span>
-        }
-      </ng-container>
-    </div>
+/* General Container */
+.dropdown-container {
+    display: -ms-flexbox;
+    display: flex;
+    position: relative;
+    -ms-flex-align: center;
+    align-items: center;
+    background-color: #fff;
+    cursor: pointer;
+    height: 46px;
+  }
+  
+  /* Dropdown */
+  .dropdown {
+    display: flex;
+    position: relative;
+    -ms-flex-align: center;
+    align-items: center;
+    background-color: #fff;
+    cursor: pointer;
+    height: 32px;
+    width: 100%;
+    border-radius: 4px;
+    border: 1px solid #9499a0;
+  }
+  
+  .dropdown-selected {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    width: 100%;
+  }
+  
+  /* Dropdown Options */
+  .dropdown-options {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 8px 0;
+    display: block;
+    overflow-y: scroll;
+  }
+  
+  /* Label */
+  .dropdown-label {
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+  }
+  
+  .option-wrapper {
+    position: relative;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-align: center;
+    align-items: center;
+  }
+  
+  .option {
+    display: flex;
+    align-items: center; /* Ensures proper alignment of radio and text */
+    padding: 0 10px;
+    border: 0;
+  }
+  
+  .option-text {
+    display: inline-block;
+    margin-left: 8px; /* Spacing between radio button and description */
+    line-height: 1; /* Ensures alignment stays consistent */
+  }
+  
+  
+  /* General styling for inputs */
+  input[type="radio"],
+  input[type="checkbox"] {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    outline: none;
+    width: 16px;
+    height: 16px;
+    border: 2px solid black;
+    border-radius: 50%;
+    display: inline-block;
+    position: relative;
+    cursor: pointer;
+    margin-right: 8px;
+    background-color: transparent;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+  
+  /* Radio button styling */
+  input[type="radio"],
+  input[type="checkbox"] {
+    margin-right: 8px;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-color: #8a8a8a;
+    vertical-align: middle; /* Align the input vertically with text */
+  }
 
-    <div class="dropdown-options">
-      @for (option of radioOptions; track option) {
-        <div class="option-wrapper">
-          <div class="option">
-            <label>
-              <input
-                type="radio"
-                name="radio-group"
-                [value]="option.value"
-                [checked]="selectedRadio === option.value"
-                (change)="selectRadio(option.value)"
-              />
-              <div class="option-text">{{ option.description }}</div>
-            </label>
-          </div>
-        </div>
-      }
-      @if (radioOptions.length > 0 && checkboxOptions.length > 0) {
-        <hr class="separator" />
-      }
-      @for (option of checkboxOptions; track option) {
-        <div class="option-wrapper">
-          <div class="option">
-            <label>
-              <input
-                type="checkbox"
-                [checked]="selectedCheckboxes.has(option.value)"
-                (change)="toggleCheckbox(option.value)"
-              />
-              <div class="option-text">{{ option.description }}</div>
-            </label>
-          </div>
-        </div>
-      }
-    </div>
-  </div>
-</div>
+
+
+  
+  input[type="radio"]:checked:after,
+  input[type="checkbox"]:checked:after {
+    content: "";
+    width: 13px;
+    height: 13px;
+    background: #461e96;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  
+  /* Checkbox styling */
+  input[type="checkbox"] {
+    border-radius: 4px;
+  }
+  
+  input[type="checkbox"]:checked {
+    background-color: white;
+  }
+  
+  input[type="checkbox"]:checked:after {
+    content: "";
+    width: 8px;
+    height: 16px;
+    border: solid #461e96;
+    border-width: 0 2px 2px 0;
+    position: absolute;
+    top: 2px;
+    left: 6px;
+    transform: rotate(45deg);
+  }
+  
+  .dropdown.open {
+    border-color: #008080;
+  }
+  
+  /* Pills */
+  .pill {
+    background-color: #ededed !important;
+    border: 1px solid #ededed !important;
+    font-size: 12px;
+    background: #007bff;
+    color: black;
+    padding: 4px 8px;
+    margin: 4px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .pill .close-btn {
+    margin-left: 8px;
+    background: transparent;
+    border: none;
+    color: black;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  
+  .arrow {
+    margin-left: auto;
+    font-size: 12px;
+    color: #888;
+    padding-right: 5px;
+  }
+  
+  .option-wrapper:hover {
+    background: #f8f9fa;
+  }
+  
+  .option:hover {
+    background: #f8f9fa;
+  }
+  
+  .separator {
+    border: 0;
+    height: 1px;
+    background: #eeeeee;
+    margin: 9px 0;
+  }
+  
+  .invalid-border {
+    border: 1px solid red !important;
+  }
+  

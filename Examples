@@ -1,86 +1,64 @@
 <div class="dropdown-container">
-  <div
-    class="dropdown"
-    [class.invalid-border]="invalid"
-    (mouseleave)="closeDropdown()"
-  >
-    <!-- Dropdown Selected Area -->
+  <div class="dropdown" [class.invalid-border]="invalid" (mouseleave)="closeDropdown()">
     <div class="dropdown-selected" (click)="toggleDropdown()">
-      <!-- Selected Radio Pill -->
-      @if (selectedRadio) {
-        <div class="pill">
-          {{ getDescription(selectedRadio) }}
-          <button class="close-btn" (click)="deselectRadio($event)">×</button>
-        </div>
-      }
-
-      <!-- Selected Checkbox Pills -->
-      @for (checkbox of selectedCheckboxes; track checkbox) {
-        <div class="pill">
-          {{ getDescription(checkbox) }}
-          <button
-            class="close-btn"
-            (click)="toggleCheckbox(checkbox); $event.stopPropagation()"
-          >
-            ×
-          </button>
-        </div>
-      }
-
-      <!-- Placeholder Arrow -->
-      @if (!selectedRadio && selectedCheckboxes.size === 0) {
-        <span class="arrow">▼</span>
-      }
+      <ng-container>
+        @if (selectedRadio) {
+          <div class="pill">
+            {{ getDescription(selectedRadio) }}
+            <button class="close-btn" (click)="deselectRadio($event)">×</button>
+          </div>
+        }
+        @for (checkbox of selectedCheckboxes; track checkbox) {
+          <div class="pill">
+            {{ getDescription(checkbox) }}
+            <button
+              class="close-btn"
+              (click)="toggleCheckbox(checkbox); $event.stopPropagation()"
+            >
+              ×
+            </button>
+          </div>
+        }
+        @if (!selectedRadio && selectedCheckboxes.size === 0) {
+          <span class="arrow">▼</span>
+        }
+      </ng-container>
     </div>
 
-    <!-- Dropdown Options -->
-    @if (isDropdownOpen) {
-      <div class="dropdown-options">
-        @defer {
-          <!-- Radio Options -->
-          @if (radioOptions.length > 0) {
-            @for (option of radioOptions; track option) {
-              <div class="option-wrapper">
-                <div class="option">
-                  <label>
-                    <input
-                      type="radio"
-                      name="radio-group"
-                      [value]="option.value"
-                      [checked]="selectedRadio === option.value"
-                      (change)="selectRadio(option.value)"
-                    />
-                    <div class="option-text">{{ option.description }}</div>
-                  </label>
-                </div>
-              </div>
-            }
-          }
-
-          <!-- Separator Between Radio and Checkbox Options -->
-          @if (radioOptions.length > 0 && checkboxOptions.length > 0) {
-            <hr class="separator" />
-          }
-
-          <!-- Checkbox Options -->
-          @if (checkboxOptions.length > 0) {
-            @for (option of checkboxOptions; track option) {
-              <div class="option-wrapper">
-                <div class="option">
-                  <label>
-                    <input
-                      type="checkbox"
-                      [checked]="selectedCheckboxes.has(option.value)"
-                      (change)="toggleCheckbox(option.value)"
-                    />
-                    <div class="option-text">{{ option.description }}</div>
-                  </label>
-                </div>
-              </div>
-            }
-          }
-        }
-      </div>
-    }
+    <div class="dropdown-options">
+      @for (option of radioOptions; track option) {
+        <div class="option-wrapper">
+          <div class="option">
+            <label>
+              <input
+                type="radio"
+                name="radio-group"
+                [value]="option.value"
+                [checked]="selectedRadio === option.value"
+                (change)="selectRadio(option.value)"
+              />
+              <div class="option-text">{{ option.description }}</div>
+            </label>
+          </div>
+        </div>
+      }
+      @if (radioOptions.length > 0 && checkboxOptions.length > 0) {
+        <hr class="separator" />
+      }
+      @for (option of checkboxOptions; track option) {
+        <div class="option-wrapper">
+          <div class="option">
+            <label>
+              <input
+                type="checkbox"
+                [checked]="selectedCheckboxes.has(option.value)"
+                (change)="toggleCheckbox(option.value)"
+              />
+              <div class="option-text">{{ option.description }}</div>
+            </label>
+          </div>
+        </div>
+      }
+    </div>
   </div>
 </div>

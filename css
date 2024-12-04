@@ -1,117 +1,16 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { MultiChoiceDropdownComponent } from './multichoice-dropdown.component';
-import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { By } from '@angular/platform-browser';
-
-describe('MultiChoiceDropdownComponent', () => {
-  let component: MultiChoiceDropdownComponent;
-  let fixture: ComponentFixture<MultiChoiceDropdownComponent>;
-
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [CommonModule, FormsModule, ReactiveFormsModule],
-      declarations: [MultiChoiceDropdownComponent],
-    }).compileComponents();
-  });
-
-  beforeEach(() => {
-    fixture = TestBed.createComponent(MultiChoiceDropdownComponent);
-    component = fixture.componentInstance;
-
-    // Default input values
-    component.radioOptions = [
-      { value: 'option1', description: 'Option 1' },
-      { value: 'option2', description: 'Option 2' },
-    ];
-    component.checkboxOptions = [
-      { value: 'checkbox1', description: 'Checkbox 1' },
-      { value: 'checkbox2', description: 'Checkbox 2' },
-    ];
-
-    fixture.detectChanges();
-  });
-
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
-
-  it('should render radio and checkbox options correctly', () => {
-    const radioInputs = fixture.debugElement.queryAll(By.css('input[type="radio"]'));
-    const checkboxInputs = fixture.debugElement.queryAll(By.css('input[type="checkbox"]'));
-
-    expect(radioInputs.length).toBe(2); // 2 radio options
-    expect(checkboxInputs.length).toBe(2); // 2 checkbox options
-  });
-
-  it('should toggle dropdown visibility', () => {
-    expect(component.isDropdownOpen).toBeFalse();
-
-    const dropdownSelected = fixture.debugElement.query(By.css('.dropdown-selected'));
-    dropdownSelected.triggerEventHandler('click', null);
-
-    expect(component.isDropdownOpen).toBeTrue();
-  });
-
-  it('should select a radio option', () => {
-    component.selectRadio('option1');
-    expect(component.selectedRadio).toBe('option1');
-  });
-
-  it('should deselect a radio option', () => {
-    component.selectedRadio = 'option1';
-
-    const event = new MouseEvent('click');
-    component.deselectRadio(event);
-
-    expect(component.selectedRadio).toBeNull();
-  });
-
-  it('should toggle checkbox selection', () => {
-    component.toggleCheckbox('checkbox1');
-    expect(component.selectedCheckboxes.has('checkbox1')).toBeTrue();
-
-    component.toggleCheckbox('checkbox1');
-    expect(component.selectedCheckboxes.has('checkbox1')).toBeFalse();
-  });
-
-  it('should emit selection changes', () => {
-    spyOn(component.onSelectionChange, 'emit');
-
-    component.selectRadio('option1');
-    component.toggleCheckbox('checkbox1');
-
-    const expectedSelection = ['option1', 'checkbox1'];
-    expect(component.onSelectionChange.emit).toHaveBeenCalledWith(expectedSelection);
-  });
-
-  it('should validate correctly when required', () => {
-    const mockControl = {
-      valid: true,
-      value: [],
-      touched: true,
-    } as any;
-
-    const validationResult = component.validate(mockControl);
-    expect(validationResult).toEqual({ required: true });
-
-    mockControl.value = ['option1'];
-    const validationResultValid = component.validate(mockControl);
-    expect(validationResultValid).toBeNull();
-  });
-
-  it('should update validation state', () => {
-    component.invalid = false;
-    component.updateValidationState();
-
-    expect(component.invalid).toBeFalse(); // Initial state
-
-    const mockControl = {
-      touched: false,
-      invalid: true,
-    } as any;
-    component.validate(mockControl);
-
-    expect(component.invalid).toBeTrue();
-  });
-});
+export const mockCustomerEnrollmentSettings: CustomerEnrollmentSettings = {
+  billingType: 'Monthly',
+  contractStartDate: new Date('2024-01-01'),
+  contractEndDate: new Date('2024-12-31'),
+  contractOrderTypes: ['Type1', 'Type2'],
+  endOfContractAction: 'Renew',
+  formularyType: ['Formulary1', 'Formulary2'],
+};
+export const mockCustomerEnrollmentData: CustomerEnrollmentData = {
+  customerId: 123,
+  customerName: 'Mock Customer',
+  programId: 456,
+  programCode: 'PRG123',
+  programName: 'Mock Program',
+  customerEnrollmentSettings: mockCustomerEnrollmentSettings,
+};

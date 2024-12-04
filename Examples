@@ -1,198 +1,90 @@
-/* General Container */
-.dropdown-container {
-    display: -ms-flexbox;
-    display: flex;
-    position: relative;
-    -ms-flex-align: center;
-    align-items: center;
-    background-color: #fff;
-    cursor: pointer;
-    height: 46px;
-  }
-  
-  /* Dropdown */
-  .dropdown {
-    display: flex;
-    position: relative;
-    -ms-flex-align: center;
-    align-items: center;
-    background-color: #fff;
-    cursor: pointer;
-    height: 32px;
-    width: 100%;
-    border-radius: 4px;
-    border: 1px solid #9499a0;
-  }
-  
-  .dropdown-selected {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    width: 100%;
-  }
-  
-  /* Dropdown Options */
-  .dropdown-options {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    z-index: 1000;
-    background: white;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 8px 0;
-    display: block;
-    overflow-y: scroll;
-  }
-  
-  /* Label */
-  .dropdown-label {
-    font-weight: 600;
-    margin-bottom: 8px;
-    display: block;
-  }
-  
-  .option-wrapper {
-    position: relative;
-    display: -ms-flexbox;
-    display: flex;
-    -ms-flex-align: center;
-    align-items: center;
-  }
-  
-  .option {
-    display: flex;
-    align-items: center; /* Ensures proper alignment of radio and text */
-    padding: 0 10px;
-    border: 0;
-  }
-  
-  .option-text {
-    display: inline-block;
-    margin-left: 8px; /* Spacing between radio button and description */
-    line-height: 1; /* Ensures alignment stays consistent */
-  }
-  
-  
-  /* General styling for inputs */
-  input[type="radio"],
-  input[type="checkbox"] {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    outline: none;
-    width: 16px;
-    height: 16px;
-    border: 2px solid black;
-    border-radius: 50%;
-    display: inline-block;
-    position: relative;
-    cursor: pointer;
-    margin-right: 8px;
-    background-color: transparent;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-  }
-  
-  /* Radio button styling */
-  input[type="radio"],
-  input[type="checkbox"] {
-    margin-right: 8px;
-    width: 1.5rem;
-    height: 1.5rem;
-    border-color: #8a8a8a;
-    vertical-align: middle; /* Align the input vertically with text */
-  }
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ReactiveFormsModule } from '@angular/forms';
+import { EnrollmentSettingsComponent } from './enrollment-settings.component';
+import { SharedModule } from '../../../../shared/shared.module';
+import { By } from '@angular/platform-browser';
 
+describe('EnrollmentSettingsComponent', () => {
+  let component: EnrollmentSettingsComponent;
+  let fixture: ComponentFixture<EnrollmentSettingsComponent>;
 
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      declarations: [EnrollmentSettingsComponent],
+      imports: [ReactiveFormsModule, SharedModule],
+    }).compileComponents();
 
-  
-  input[type="radio"]:checked:after,
-  input[type="checkbox"]:checked:after {
-    content: "";
-    width: 13px;
-    height: 13px;
-    background: #461e96;
-    border-radius: 50%;
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
-  
-  /* Checkbox styling */
-  input[type="checkbox"] {
-    border-radius: 4px;
-  }
-  
-  input[type="checkbox"]:checked {
-    background-color: white;
-  }
-  
-  input[type="checkbox"]:checked:after {
-    content: "";
-    width: 8px;
-    height: 16px;
-    border: solid #461e96;
-    border-width: 0 2px 2px 0;
-    position: absolute;
-    top: 2px;
-    left: 6px;
-    transform: rotate(45deg);
-  }
-  
-  .dropdown.open {
-    border-color: #008080;
-  }
-  
-  /* Pills */
-  .pill {
-    background-color: #ededed !important;
-    border: 1px solid #ededed !important;
-    font-size: 12px;
-    background: #007bff;
-    color: black;
-    padding: 4px 8px;
-    margin: 4px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-  }
-  
-  .pill .close-btn {
-    margin-left: 8px;
-    background: transparent;
-    border: none;
-    color: black;
-    font-size: 16px;
-    line-height: 1;
-    cursor: pointer;
-  }
-  
-  .arrow {
-    margin-left: auto;
-    font-size: 12px;
-    color: #888;
-    padding-right: 5px;
-  }
-  
-  .option-wrapper:hover {
-    background: #f8f9fa;
-  }
-  
-  .option:hover {
-    background: #f8f9fa;
-  }
-  
-  .separator {
-    border: 0;
-    height: 1px;
-    background: #eeeeee;
-    margin: 9px 0;
-  }
-  
-  .invalid-border {
-    border: 1px solid red !important;
-  }
-  
+    fixture = TestBed.createComponent(EnrollmentSettingsComponent);
+    component = fixture.componentInstance;
+
+    // Mock initial data
+    component.formularyTypeOptions = [{ value: 'A', description: 'Option A' }];
+    component.billingTypeOptions = [{ value: 'B', description: 'Option B' }];
+    component.orderTypeOptions = [{ value: 'C', description: 'Option C' }];
+    component.contractEndActionOptions = [{ value: 'D', description: 'Option D' }];
+    component.customerEnrollmentSettForm = new FormGroup({}); // Replace with the actual form initialization
+    fixture.detectChanges();
+  });
+
+  it('should create the component', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it('should render the form with all controls', () => {
+    const formElement = fixture.debugElement.query(By.css('form'));
+    expect(formElement).toBeTruthy();
+
+    const inputElements = formElement.queryAll(By.css('input, app-dropdown, app-checkbox-group, app-date-picker'));
+    expect(inputElements.length).toBeGreaterThan(0); // Ensure form controls are rendered
+  });
+
+  it('should disable the "Save and continue" button if the form is invalid', () => {
+    component.customerEnrollmentSettForm.markAsTouched();
+    component.customerEnrollmentSettForm.setErrors({ invalid: true });
+    fixture.detectChanges();
+
+    const saveButton = fixture.debugElement.query(By.css('button[type="submit"]')).nativeElement;
+    expect(saveButton.disabled).toBeTrue();
+  });
+
+  it('should call saveEnrollmentSettingsClicked on "Save and continue" button click', () => {
+    spyOn(component, 'saveEnrollmentSettingsClicked');
+    const saveButton = fixture.debugElement.query(By.css('button[type="submit"]')).nativeElement;
+
+    saveButton.click();
+    expect(component.saveEnrollmentSettingsClicked).toHaveBeenCalled();
+  });
+
+  it('should emit the onSelectionChange event for formulary type', () => {
+    spyOn(component, 'onFormularySelectionChanged');
+    const multichoiceDropdown = fixture.debugElement.query(By.css('app-multichoice-dropdown'));
+    multichoiceDropdown.triggerEventHandler('onSelectionChange', 'testValue');
+
+    expect(component.onFormularySelectionChanged).toHaveBeenCalledWith('testValue');
+  });
+
+  it('should save enrollment settings on form submit', () => {
+    spyOn(component, 'saveEnrollmentSettings');
+    component.customerEnrollmentSettForm.setErrors(null); // Valid form
+    fixture.detectChanges();
+
+    const formElement = fixture.debugElement.query(By.css('form')).nativeElement;
+    formElement.submit();
+    expect(component.saveEnrollmentSettings).toHaveBeenCalled();
+  });
+
+  it('should call saveProgressEnrollmentSettings when save progress button is clicked', () => {
+    spyOn(component, 'saveProgressEnrollmentSettings');
+    const saveProgressButton = fixture.debugElement.queryAll(By.css('button'))[1].nativeElement; // Assuming it's the second button
+    saveProgressButton.click();
+    expect(component.saveProgressEnrollmentSettings).toHaveBeenCalled();
+  });
+
+  it('should validate date filter correctly', () => {
+    const validDate = new Date();
+    const invalidDate = new Date(1999, 1, 1);
+    expect(component.dateFilter(validDate)).toBeTrue();
+    expect(component.dateFilter(invalidDate)).toBeFalse();
+  });
+});
+

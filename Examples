@@ -109,3 +109,9 @@ export class EnrollmentSettingsComponent implements OnInit {
     this.subscriptions.unsubscribe();
   }
 }
+
+
+ <!-- Warning Message for Contract Start Date -->
+    <div *ngIf="contractStartDateWarning" class="warning-message">
+      {{ contractStartDateWarning }}
+    </div>

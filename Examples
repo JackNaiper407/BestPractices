@@ -1,90 +1,111 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule } from '@angular/forms';
-import { EnrollmentSettingsComponent } from './enrollment-settings.component';
-import { SharedModule } from '../../../../shared/shared.module';
-import { By } from '@angular/platform-browser';
+import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
+import { CustomerEnrollmentData } from '../../model/customer-enrollment-data.model';
+import { CustomerEnrollmentSettings } from '../../model/customer-enrollment-settings.model';
+import { DataOption } from '../../../../shared/models/data-option.model';
+import { ProgramData } from '../../../program/model/program-data.model';
+import { Subscription } from 'rxjs';
 
-describe('EnrollmentSettingsComponent', () => {
-  let component: EnrollmentSettingsComponent;
-  let fixture: ComponentFixture<EnrollmentSettingsComponent>;
+@Component({
+  selector: 'app-enrollment-settings',
+  templateUrl: './enrollment-settings.component.html',
+  changeDetection: ChangeDetectionStrategy.Default,
+  standalone: true,
+  imports: [SharedModule],
+})
+export class EnrollmentSettingsComponent implements OnInit {
+  @Input() customerEnrollmentSettForm!: FormGroup<EnrollmentSettingForm>;
+  @Input() billingTypeLookUp = new Array<DataOption>();
+  @Input() contractEndActionLookUp = new Array<DataOption>();
+  @Input() orderTypesLookUp = new Array<DataOption>();
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      declarations: [EnrollmentSettingsComponent],
-      imports: [ReactiveFormsModule, SharedModule],
-    }).compileComponents();
+  @Input() set programDataInput(value: ProgramData) {
+    if (value) {
+      this.setProgramMasterData(value);
+    }
+  }
 
-    fixture = TestBed.createComponent(EnrollmentSettingsComponent);
-    component = fixture.componentInstance;
+  formularyTypeOptions: DataOption[] = [];
+  orderTypes: DataOption[] = [];
+  selectAll: boolean = false;
+  listOfCustomFormulary: DataOption[] = [
+    { value: 'CF', description: 'Custom formulary' },
+  ];
+  programStartDate!: Date;
+  programEndDate!: Date;
+  CustomerCommitLeadTime!: number;
 
-    // Mock initial data
-    component.formularyTypeOptions = [{ value: 'A', description: 'Option A' }];
-    component.billingTypeOptions = [{ value: 'B', description: 'Option B' }];
-    component.orderTypeOptions = [{ value: 'C', description: 'Option C' }];
-    component.contractEndActionOptions = [{ value: 'D', description: 'Option D' }];
-    component.customerEnrollmentSettForm = new FormGroup({}); // Replace with the actual form initialization
-    fixture.detectChanges();
-  });
+  contractStartDateWarning: string | null = null;
+  contractEndDateWarning: string | null = null;
 
-  it('should create the component', () => {
-    expect(component).toBeTruthy();
-  });
+  private subscriptions: Subscription = new Subscription();
 
-  it('should render the form with all controls', () => {
-    const formElement = fixture.debugElement.query(By.css('form'));
-    expect(formElement).toBeTruthy();
+  ngOnInit(): void {
+    // Subscribe to Contract Start Date value changes
+    this.subscriptions.add(
+      this.customerEnrollmentSettForm.controls.contractStartDate.valueChanges.subscribe(
+        (selectedDate: Date) => this.validateContractStartDate(selectedDate)
+      )
+    );
 
-    const inputElements = formElement.queryAll(By.css('input, app-dropdown, app-checkbox-group, app-date-picker'));
-    expect(inputElements.length).toBeGreaterThan(0); // Ensure form controls are rendered
-  });
+    // Subscribe to Contract End Date value changes
+    this.subscriptions.add(
+      this.customerEnrollmentSettForm.controls.contractEndDate.valueChanges.subscribe(
+        (selectedDate: Date) => this.validateContractEndDate(selectedDate)
+      )
+    );
+  }
 
-  it('should disable the "Save and continue" button if the form is invalid', () => {
-    component.customerEnrollmentSettForm.markAsTouched();
-    component.customerEnrollmentSettForm.setErrors({ invalid: true });
-    fixture.detectChanges();
+  private validateContractStartDate(selectedDate: Date): void {
+    this.contractStartDateWarning = null; // Reset warning message
 
-    const saveButton = fixture.debugElement.query(By.css('button[type="submit"]')).nativeElement;
-    expect(saveButton.disabled).toBeTrue();
-  });
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize today's date
+    const normalizedSelectedDate = new Date(selectedDate);
+    normalizedSelectedDate.setHours(0, 0, 0, 0); // Normalize selected date
 
-  it('should call saveEnrollmentSettingsClicked on "Save and continue" button click', () => {
-    spyOn(component, 'saveEnrollmentSettingsClicked');
-    const saveButton = fixture.debugElement.query(By.css('button[type="submit"]')).nativeElement;
+    if (normalizedSelectedDate < today || normalizedSelectedDate > this.programEndDate) {
+      this.contractStartDateWarning =
+        'The selected date must be between today and the program end date.';
+      return;
+    }
 
-    saveButton.click();
-    expect(component.saveEnrollmentSettingsClicked).toHaveBeenCalled();
-  });
+    const daysDifference = Math.ceil(
+      (normalizedSelectedDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+    );
 
-  it('should emit the onSelectionChange event for formulary type', () => {
-    spyOn(component, 'onFormularySelectionChanged');
-    const multichoiceDropdown = fixture.debugElement.query(By.css('app-multichoice-dropdown'));
-    multichoiceDropdown.triggerEventHandler('onSelectionChange', 'testValue');
+    if (daysDifference <= this.CustomerCommitLeadTime) {
+      this.contractStartDateWarning = `The selected date must be at least ${
+        this.CustomerCommitLeadTime + 1
+      } days from today.`;
+    }
+  }
 
-    expect(component.onFormularySelectionChanged).toHaveBeenCalledWith('testValue');
-  });
+  private validateContractEndDate(selectedDate: Date): void {
+    this.contractEndDateWarning = null; // Reset warning message
 
-  it('should save enrollment settings on form submit', () => {
-    spyOn(component, 'saveEnrollmentSettings');
-    component.customerEnrollmentSettForm.setErrors(null); // Valid form
-    fixture.detectChanges();
+    const contractStartDate = this.customerEnrollmentSettForm.controls.contractStartDate.value;
+    const normalizedContractStartDate = new Date(contractStartDate);
+    normalizedContractStartDate.setHours(0, 0, 0, 0); // Normalize contract start date
 
-    const formElement = fixture.debugElement.query(By.css('form')).nativeElement;
-    formElement.submit();
-    expect(component.saveEnrollmentSettings).toHaveBeenCalled();
-  });
+    const normalizedSelectedDate = new Date(selectedDate);
+    normalizedSelectedDate.setHours(0, 0, 0, 0); // Normalize selected date
 
-  it('should call saveProgressEnrollmentSettings when save progress button is clicked', () => {
-    spyOn(component, 'saveProgressEnrollmentSettings');
-    const saveProgressButton = fixture.debugElement.queryAll(By.css('button'))[1].nativeElement; // Assuming it's the second button
-    saveProgressButton.click();
-    expect(component.saveProgressEnrollmentSettings).toHaveBeenCalled();
-  });
+    if (
+      normalizedSelectedDate < normalizedContractStartDate ||
+      normalizedSelectedDate > this.programEndDate
+    ) {
+      this.contractEndDateWarning =
+        'The selected date must be between the contract start date and the program end date.';
+    }
+  }
 
-  it('should validate date filter correctly', () => {
-    const validDate = new Date();
-    const invalidDate = new Date(1999, 1, 1);
-    expect(component.dateFilter(validDate)).toBeTrue();
-    expect(component.dateFilter(invalidDate)).toBeFalse();
-  });
-});
+  private setProgramMasterData(programData: ProgramData): void {
+    this.programEndDate = programData.endDate; // Assuming this is already part of ProgramData
+    this.CustomerCommitLeadTime = programData.customerCommitLeadTime;
+  }
 
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+  }
+}

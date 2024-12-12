@@ -1,28 +1,25 @@
 .dropdown-container {
-  position: relative; /* Ensure the container acts as a reference for positioning */
-  overflow: visible; /* Ensure no child elements are clipped */
-  z-index: 1; /* Keep the dropdown above other elements */
+  position: relative; /* Ensures dropdown-options are positioned relative to this container */
+  z-index: 10; /* Make sure it's above other elements */
 }
 
 .dropdown-options {
-  position: absolute; /* Ensure it's positioned relative to the container */
-  top: 100%; /* Place it just below the dropdown-selected area */
+  position: absolute; /* Allow it to be placed outside of normal document flow */
+  top: 100%; /* Position it directly below the dropdown-selected */
   left: 0;
   right: 0;
-  z-index: 1000; /* Ensure it appears on top of other content */
-  background: white; /* Set a visible background color */
-  border: 1px solid #ccc; /* Optional: Add a border */
+  z-index: 1000; /* High enough to be above other content */
+  background: white;
+  border: 1px solid #ccc;
   border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  max-height: 200px; /* Restrict height for long lists */
-  overflow-y: auto; /* Add scroll for long content */
-  display: block; /* Ensure it remains visible */
-  visibility: visible; /* Remove any accidental 'hidden' values */
-  opacity: 1; /* Ensure full opacity */
-  transition: opacity 0.3s ease; /* Smooth opening/closing transition */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-height: 300px; /* Adjust for scrolling long lists */
+  overflow-y: auto; /* Add scroll behavior */
+  display: block; /* Ensure it's displayed */
+  visibility: visible !important; /* Override any hidden styles */
+  opacity: 1 !important; /* Fully visible */
 }
 
-/* Prevent the dropdown from being clipped by parent containers */
 body {
-  overflow: visible !important; /* Ensure no clipping at the body level */
+  overflow: visible; /* Ensure no clipping occurs */
 }

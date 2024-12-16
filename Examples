@@ -1,117 +1,83 @@
-import { ChangeDetectionStrategy, Component, Input, OnInit } from '@angular/core';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { CustomerEnrollmentData } from '../../model/customer-enrollment-data.model';
-import { CustomerEnrollmentSettings } from '../../model/customer-enrollment-settings.model';
-import { DataOption } from '../../../../shared/models/data-option.model';
-import { ProgramData } from '../../../program/model/program-data.model';
-import { Subscription } from 'rxjs';
+import { Component } from '@angular/core';
+import { Router } from '@angular/router';
+import { StateService } from './state.service';
 
 @Component({
-  selector: 'app-enrollment-settings',
-  templateUrl: './enrollment-settings.component.html',
-  changeDetection: ChangeDetectionStrategy.Default,
-  standalone: true,
-  imports: [SharedModule],
+  selector: 'app-sender',
+  template: `
+    <button (click)="sendProgramID()">Send Program ID</button>
+  `,
 })
-export class EnrollmentSettingsComponent implements OnInit {
-  @Input() customerEnrollmentSettForm!: FormGroup<EnrollmentSettingForm>;
-  @Input() billingTypeLookUp = new Array<DataOption>();
-  @Input() contractEndActionLookUp = new Array<DataOption>();
-  @Input() orderTypesLookUp = new Array<DataOption>();
+export class SenderComponent {
+  constructor(private stateService: StateService, private router: Router) {}
 
-  @Input() set programDataInput(value: ProgramData) {
-    if (value) {
-      this.setProgramMasterData(value);
-    }
+  sendProgramID() {
+    const programID = 12345; // Example program ID
+    this.stateService.setProgramID(programID); // Save to state service and storage
+    this.router.navigate(['/receiver']); // Navigate to the receiver component
+  }
+}
+
+import { Component, OnInit } from '@angular/core';
+import { StateService } from './state.service';
+
+@Component({
+  selector: 'app-receiver',
+  template: `
+    <p>Received Program ID: {{ programID }}</p>
+  `,
+})
+export class ReceiverComponent implements OnInit {
+  programID: number | null = null;
+
+  constructor(private stateService: StateService) {}
+
+  ngOnInit() {
+    // Subscribe to the service's programID
+    this.stateService.getProgramID().subscribe((id) => {
+      if (id !== null) {
+        this.programID = id;
+      } else {
+        // Fallback to localStorage if programID is not in the service
+        this.programID = this.stateService.loadFromStorage('programID');
+      }
+    });
+  }
+}
+
+import { Injectable } from '@angular/core';
+import { BehaviorSubject, Observable } from 'rxjs';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class StateService {
+  private programIDSubject = new BehaviorSubject<number | null>(null);
+
+  // Getter: Expose programID as an Observable
+  getProgramID(): Observable<number | null> {
+    return this.programIDSubject.asObservable();
   }
 
-  formularyTypeOptions: DataOption[] = [];
-  orderTypes: DataOption[] = [];
-  selectAll: boolean = false;
-  listOfCustomFormulary: DataOption[] = [
-    { value: 'CF', description: 'Custom formulary' },
-  ];
-  programStartDate!: Date;
-  programEndDate!: Date;
-  CustomerCommitLeadTime!: number;
-
-  contractStartDateWarning: string | null = null;
-  contractEndDateWarning: string | null = null;
-
-  private subscriptions: Subscription = new Subscription();
-
-  ngOnInit(): void {
-    // Subscribe to Contract Start Date value changes
-    this.subscriptions.add(
-      this.customerEnrollmentSettForm.controls.contractStartDate.valueChanges.subscribe(
-        (selectedDate: Date) => this.validateContractStartDate(selectedDate)
-      )
-    );
-
-    // Subscribe to Contract End Date value changes
-    this.subscriptions.add(
-      this.customerEnrollmentSettForm.controls.contractEndDate.valueChanges.subscribe(
-        (selectedDate: Date) => this.validateContractEndDate(selectedDate)
-      )
-    );
+  // Setter: Update the programID
+  setProgramID(programID: number): void {
+    this.programIDSubject.next(programID);
+    this.saveToStorage('programID', programID);
   }
 
-  private validateContractStartDate(selectedDate: Date): void {
-    this.contractStartDateWarning = null; // Reset warning message
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normalize today's date
-    const normalizedSelectedDate = new Date(selectedDate);
-    normalizedSelectedDate.setHours(0, 0, 0, 0); // Normalize selected date
-
-    if (normalizedSelectedDate < today || normalizedSelectedDate > this.programEndDate) {
-      this.contractStartDateWarning =
-        'The selected date must be between today and the program end date.';
-      return;
-    }
-
-    const daysDifference = Math.ceil(
-      (normalizedSelectedDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
-    );
-
-    if (daysDifference <= this.CustomerCommitLeadTime) {
-      this.contractStartDateWarning = `The selected date must be at least ${
-        this.CustomerCommitLeadTime + 1
-      } days from today.`;
-    }
+  // Persist programID to localStorage
+  saveToStorage(key: string, programID: number): void {
+    localStorage.setItem(key, programID.toString());
   }
 
-  private validateContractEndDate(selectedDate: Date): void {
-    this.contractEndDateWarning = null; // Reset warning message
-
-    const contractStartDate = this.customerEnrollmentSettForm.controls.contractStartDate.value;
-    const normalizedContractStartDate = new Date(contractStartDate);
-    normalizedContractStartDate.setHours(0, 0, 0, 0); // Normalize contract start date
-
-    const normalizedSelectedDate = new Date(selectedDate);
-    normalizedSelectedDate.setHours(0, 0, 0, 0); // Normalize selected date
-
-    if (
-      normalizedSelectedDate < normalizedContractStartDate ||
-      normalizedSelectedDate > this.programEndDate
-    ) {
-      this.contractEndDateWarning =
-        'The selected date must be between the contract start date and the program end date.';
-    }
-  }
-
-  private setProgramMasterData(programData: ProgramData): void {
-    this.programEndDate = programData.endDate; // Assuming this is already part of ProgramData
-    this.CustomerCommitLeadTime = programData.customerCommitLeadTime;
-  }
-
-  ngOnDestroy(): void {
-    this.subscriptions.unsubscribe();
+  // Load programID from localStorage
+  loadFromStorage(key: string): number | null {
+    const storedValue = localStorage.getItem(key);
+    return storedValue ? +storedValue : null;
   }
 }
 
 
- <!-- Warning Message for Contract Start Date -->
-    <div *ngIf="contractStartDateWarning" class="warning-message">
-      {{ contractStartDateWarning }}
-    </div>
+
+
+

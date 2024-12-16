@@ -1,3 +1,26 @@
+import { Injectable, signal, Signal } from '@angular/core';
+
+@Injectable({
+  providedIn: 'root',
+})
+export class StateService {
+  // Signal to hold programID
+  private programIDSignal = signal<number | null>(null);
+
+  // Getter: Access the programID
+  getProgramID(): Signal<number | null> {
+    return this.programIDSignal;
+  }
+
+  // Setter: Update the programID
+  setProgramID(programID: number): void {
+    this.programIDSignal.set(programID);
+  }
+}
+
+
+
+
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { StateService } from './state.service';
@@ -13,71 +36,28 @@ export class SenderComponent {
 
   sendProgramID() {
     const programID = 12345; // Example program ID
-    this.stateService.setProgramID(programID); // Save to state service and storage
-    this.router.navigate(['/receiver']); // Navigate to the receiver component
+    this.stateService.setProgramID(programID); // Update programID in the service
+    this.router.navigate(['/receiver']); // Navigate to receiver
   }
 }
 
-import { Component, OnInit } from '@angular/core';
+import { Component, Signal } from '@angular/core';
 import { StateService } from './state.service';
 
 @Component({
   selector: 'app-receiver',
   template: `
-    <p>Received Program ID: {{ programID }}</p>
+    <p *ngIf="programID() !== null">Received Program ID: {{ programID() }}</p>
+    <p *ngIf="programID() === null">No Program ID Available</p>
   `,
 })
-export class ReceiverComponent implements OnInit {
-  programID: number | null = null;
+export class ReceiverComponent {
+  programID: Signal<number | null>;
 
-  constructor(private stateService: StateService) {}
-
-  ngOnInit() {
-    // Subscribe to the service's programID
-    this.stateService.getProgramID().subscribe((id) => {
-      if (id !== null) {
-        this.programID = id;
-      } else {
-        // Fallback to localStorage if programID is not in the service
-        this.programID = this.stateService.loadFromStorage('programID');
-      }
-    });
+  constructor(private stateService: StateService) {
+    // Retrieve the programID signal
+    this.programID = this.stateService.getProgramID();
   }
 }
-
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-
-@Injectable({
-  providedIn: 'root',
-})
-export class StateService {
-  private programIDSubject = new BehaviorSubject<number | null>(null);
-
-  // Getter: Expose programID as an Observable
-  getProgramID(): Observable<number | null> {
-    return this.programIDSubject.asObservable();
-  }
-
-  // Setter: Update the programID
-  setProgramID(programID: number): void {
-    this.programIDSubject.next(programID);
-    this.saveToStorage('programID', programID);
-  }
-
-  // Persist programID to localStorage
-  saveToStorage(key: string, programID: number): void {
-    localStorage.setItem(key, programID.toString());
-  }
-
-  // Load programID from localStorage
-  loadFromStorage(key: string): number | null {
-    const storedValue = localStorage.getItem(key);
-    return storedValue ? +storedValue : null;
-  }
-}
-
-
-
 
 

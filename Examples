@@ -1,63 +1,30 @@
-import { Injectable, signal, Signal } from '@angular/core';
-
-@Injectable({
-  providedIn: 'root',
-})
-export class StateService {
-  // Signal to hold programID
-  private programIDSignal = signal<number | null>(null);
-
-  // Getter: Access the programID
-  getProgramID(): Signal<number | null> {
-    return this.programIDSignal;
-  }
-
-  // Setter: Update the programID
-  setProgramID(programID: number): void {
-    this.programIDSignal.set(programID);
-  }
-}
-
-
-
-
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
 import { StateService } from './state.service';
 
-@Component({
-  selector: 'app-sender',
-  template: `
-    <button (click)="sendProgramID()">Send Program ID</button>
-  `,
-})
-export class SenderComponent {
-  constructor(private stateService: StateService, private router: Router) {}
+describe('StateService', () => {
+  let service: StateService;
 
-  sendProgramID() {
-    const programID = 12345; // Example program ID
-    this.stateService.setProgramID(programID); // Update programID in the service
-    this.router.navigate(['/receiver']); // Navigate to receiver
-  }
-}
+  beforeEach(() => {
+    service = new StateService();
+  });
 
-import { Component, Signal } from '@angular/core';
-import { StateService } from './state.service';
+  it('should initialize programId as null', () => {
+    expect(service.getProgramId()()).toBeNull();
+  });
 
-@Component({
-  selector: 'app-receiver',
-  template: `
-    <p *ngIf="programID() !== null">Received Program ID: {{ programID() }}</p>
-    <p *ngIf="programID() === null">No Program ID Available</p>
-  `,
-})
-export class ReceiverComponent {
-  programID: Signal<number | null>;
+  it('should set and retrieve programId', () => {
+    const testId = 12345;
+    service.setProgramId(testId);
+    expect(service.getProgramId()()).toBe(testId);
+  });
 
-  constructor(private stateService: StateService) {
-    // Retrieve the programID signal
-    this.programID = this.stateService.getProgramID();
-  }
-}
+  it('should update programId when setProgramId is called again', () => {
+    const firstId = 12345;
+    const secondId = 67890;
 
+    service.setProgramId(firstId);
+    expect(service.getProgramId()()).toBe(firstId);
 
+    service.setProgramId(secondId);
+    expect(service.getProgramId()()).toBe(secondId);
+  });
+});

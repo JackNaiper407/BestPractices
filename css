@@ -1,102 +1,12 @@
-<div
-  class="dropdown [class.disabled]="disabled" [class.invalid-border]="'invalid'"
-  [class.open]="isDropdownOpen"
-  (mouseleave)="closeDropdown()"
-  aria-disabled="{{disabled}}">
-  <div class="dropdown-selected" (click)="!disabled && toggleDropdown()">
-    @if (selectedRadio) {
-      <div class="pill">
-        {{ getDescription(selectedRadio) }}
-        <button class="close-btn" (click)="!disabled && deselectRadio($event)" [disabled]="disabled">x</button>
-      </div>
-    }
-    @for (checkbox of selectedCheckboxes; track checkbox) {
-      <div class="pill">
-        {{ getDescription(checkbox) }}
-        <button
-          class="close-btn"
-          (click)="!disabled && toggleCheckbox(checkbox); $event.stopPropagation()"
-          [disabled]="disabled">x</button>
-      </div>
-    }
-    <span class="arrow"></span>
-  </div>
-  @if (isDropdownOpen) {
-    <div class="dropdown-options">
-      @defer @if (radioOptions.length > 0) {
-        @for (option of radioOptions; track option) {
-          <div class="option-wrapper">
-            <div class="option">
-              <label>
-                <input
-                  type="radio"
-                  name="radio-group"
-                  [value]="option.value"
-                  [checked]="selectedRadio === option.value"
-                  (change)="selectRadio(option.value)"
-                  [disabled]="disabled" />
-                <div class="option-text">{{ option.description }}</div>
-              </label>
-            </div>
-          </div>
-        }
-      }
-      @if (radioOptions.length > 0 && checkboxOptions.length > 0) {
-        <hr class="separator" />
-      }
-      @if (checkboxOptions.length > 0) {
-        @for (option of checkboxOptions; track option) {
-          <div class="option-wrapper">
-            <div class="option">
-              <label>
-                <input
-                  type="checkbox"
-                  [checked]="selectedCheckboxes.has(option.value)"
-                  (change)="toggleCheckbox(option.value)"
-                  [disabled]="disabled" />
-                <div class="option-text">{{ option.description }}</div>
-              </label>
-            </div>
-          </div>
-        }
-      }
-    </div>
-  }
-</div>
-
-
-.dropdown.disabled {
-  pointer-events: none; /* Prevent interaction */
-  opacity: 0.5; /* Dim the dropdown */
-}
-
-input:disabled {
-  cursor: not-allowed;
-  background-color: #f5f5f5; /* Light gray background */
-  border-color: #ddd;
-}
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule, DateAdapter, NativeDateAdapter } from '@angular/material/core';
 
 
 
-<app-multichoice-dropdown
-  [radioOptions]="radioOptions"
-  [checkboxOptions]="checkboxOptions"
-  [disabled]="isControlDisabled">
-</app-multichoice-dropdown>
-
-.dropdown.disabled {
-  pointer-events: none; /* Prevent interactions */
-  opacity: 0.6; /* Visually indicate disabled state */
-  cursor: not-allowed;
-}
-
-input:disabled {
-  cursor: not-allowed; /* Add appropriate cursor */
-  background-color: #f5f5f5; /* Light gray background */
-  border-color: #ddd;
-}
-
-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
+ imports: [
+    MatDatepickerModule,
+    MatNativeDateModule, // Provides the NativeDateAdapter
+  ],
+  providers: [
+    { provide: DateAdapter, useClass: NativeDateAdapter }, // Inject NativeDateAdapter
+  ],

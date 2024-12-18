@@ -1,49 +1,83 @@
- getEnrollmentById(id: number): Observable<ODataResponse> {
-    // Simulated OData-style response
-    const mockResponse: ODataResponse = {
-      count: 1,
-      value: [
-        {
-          customerId: id,
-          customerName: 'John Doe',
-          programId: 101,
-          programCode: 'PROG-001',
-          programName: 'Mock Program',
-          customerEnrollmentSettings: {
-            customerId: id,
-            programId: 101,
-            billingType: 'Monthly',
-            contractStartDate: new Date('2024-01-01'),
-            contractEndDate: new Date('2025-01-01'),
-            contractOrderTypes: ['Standard', 'Premium'],
-            endOfContractAction: 'Renew',
-            formularyType: ['Basic', 'Advanced']
-          } as CustomerEnrollmentSettings,
-          enrollmentGroups: [
-            {
-              enrollmentGroupId: 1,
-              enrollmentId: id,
-              groupName: 'Group A',
-              externalSBPNumber: 'SBP-12345',
-              groupAccounts: [
-                {
-                  enrollmentAccountId: 1001,
-                  accountId: 5001,
-                  accountNumber: 789123,
-                  enrollmentGroupId: 1,
-                  shipToAccount: 'Account A',
-                  distributionCenter: 'Center 1',
-                  accountStatus: 'Active',
-                  accountGoLiveDate: new Date('2024-02-01'),
-                  accountCutOffDate: new Date('2025-02-01')
-                } as GroupAccountsData
-              ]
-            } as EnrollmentGroupData
-          ]
-        } as CustomerEnrollmentData
-      ]
-    };
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { of } from 'rxjs';
+import { switchMap, catchError } from 'rxjs/operators';
+import { CustomerEnrollmentService } from './customer-enrollment.service';
+import { CustomerEnrollmentData } from './models/customer-enrollment-data.model';
+import { ProgramData } from './models/program-data.model';
 
-    // Return the mock OData response as an Observable
-    return of(mockResponse);
+@Component({
+  selector: 'app-enrollment',
+  templateUrl: './enrollment.component.html',
+})
+export class EnrollmentComponent implements OnInit {
+  enrollmentId!: number;
+  programId!: number;
+  customerEnrollmentData!: CustomerEnrollmentData;
+  programData!: ProgramData;
+  subscriptions: any = { sink: null };
+
+  constructor(
+    private customerEnrollmentService: CustomerEnrollmentService,
+    private cdr: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
+    this.loadProgramData()
+      .pipe(
+        // Conditionally call loadEnrollmentData only when enrollmentId > 0
+        switchMap(() => {
+          if (this.enrollmentId > 0) {
+            return this.loadEnrollmentData();
+          }
+          return of(null); // If condition fails, return a completed observable
+        })
+      )
+      .subscribe({
+        next: () => {
+          console.log('Program data and optional enrollment data loaded successfully');
+        },
+        error: (err) => {
+          console.error('Error occurred while loading data:', err);
+        }
+      });
   }
+
+  private loadProgramData() {
+    return this.customerEnrollmentService.getProgramDataById(this.programId ?? 0).pipe(
+      catchError((err) => {
+        console.error('Error fetching program data:', err);
+        return of(null);
+      }),
+      switchMap((programDataResult) => {
+        if (programDataResult?.value?.length) {
+          const programData: ProgramData = new ProgramData();
+          programData.programOrderTypes = programDataResult.value[0]?.programOrderTypes;
+          programData.programFormularies = programDataResult.value[0]?.programFormularies;
+          programData.startDate = new Date(programDataResult.value[0]?.startDate);
+          programData.endDate = new Date(programDataResult.value[0]?.endDate);
+          this.programData = programData;
+          this.cdr.detectChanges();
+        }
+        return of(true); // Indicate completion
+      })
+    );
+  }
+
+  private loadEnrollmentData() {
+    return this.customerEnrollmentService.getEnrollmentById(this.enrollmentId).pipe(
+      catchError((err) => {
+        console.error('Error fetching enrollment data:', err);
+        return of(null);
+      }),
+      switchMap((enrollmentDataResult) => {
+        if (enrollmentDataResult?.value?.length) {
+          const enrollmentData: CustomerEnrollmentData = new CustomerEnrollmentData();
+          enrollmentData.customerId = enrollmentDataResult.value[0]?.customerId;
+          this.customerEnrollmentData = enrollmentData;
+          this.cdr.detectChanges();
+        }
+        return of(true); // Indicate completion
+      })
+    );
+  }
+}

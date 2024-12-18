@@ -1,30 +1,72 @@
-import { StateService } from './state.service';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { CancelAlertComponent } from './cancel-alert.component';
+import { CommonModule } from '@angular/common';
+import { By } from '@angular/platform-browser';
 
-describe('StateService', () => {
-  let service: StateService;
+describe('CancelAlertComponent', () => {
+  let component: CancelAlertComponent;
+  let fixture: ComponentFixture<CancelAlertComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [CommonModule],
+      declarations: [CancelAlertComponent]
+    }).compileComponents();
+  });
 
   beforeEach(() => {
-    service = new StateService();
+    fixture = TestBed.createComponent(CancelAlertComponent);
+    component = fixture.componentInstance;
+    fixture.detectChanges();
   });
 
-  it('should initialize programId as null', () => {
-    expect(service.getProgramId()()).toBeNull();
+  it('should create the component', () => {
+    expect(component).toBeTruthy();
   });
 
-  it('should set and retrieve programId', () => {
-    const testId = 12345;
-    service.setProgramId(testId);
-    expect(service.getProgramId()()).toBe(testId);
+  it('should emit "cancel" when onCancel() is called', () => {
+    spyOn(component.cancel, 'emit');
+    component.onCancel();
+    expect(component.cancel.emit).toHaveBeenCalled();
+    expect(component.isOpen).toBeFalse();
   });
 
-  it('should update programId when setProgramId is called again', () => {
-    const firstId = 12345;
-    const secondId = 67890;
+  it('should emit "leaveWithoutSaving" when onLeaveWithoutSaving() is called', () => {
+    spyOn(component.leaveWithoutSaving, 'emit');
+    component.onLeaveWithoutSaving();
+    expect(component.leaveWithoutSaving.emit).toHaveBeenCalled();
+    expect(component.isOpen).toBeFalse();
+  });
 
-    service.setProgramId(firstId);
-    expect(service.getProgramId()()).toBe(firstId);
+  it('should emit "saveProgress" when onSave() is called', () => {
+    spyOn(component.saveProgress, 'emit');
+    component.onSave();
+    expect(component.saveProgress.emit).toHaveBeenCalled();
+  });
 
-    service.setProgramId(secondId);
-    expect(service.getProgramId()()).toBe(secondId);
+  it('should render the correct title text', () => {
+    const titleElement = fixture.debugElement.query(By.css('.lg')).nativeElement;
+    expect(titleElement.textContent.trim()).toBe('Save enrollment progress before leaving page');
+  });
+
+  it('should call onCancel() when "Cancel" button is clicked', () => {
+    spyOn(component, 'onCancel');
+    const cancelButton = fixture.debugElement.query(By.css('button')).nativeElement;
+    cancelButton.click();
+    expect(component.onCancel).toHaveBeenCalled();
+  });
+
+  it('should call onLeaveWithoutSaving() when "No, leave without saving" button is clicked', () => {
+    spyOn(component, 'onLeaveWithoutSaving');
+    const leaveButton = fixture.debugElement.queryAll(By.css('button'))[1].nativeElement;
+    leaveButton.click();
+    expect(component.onLeaveWithoutSaving).toHaveBeenCalled();
+  });
+
+  it('should call onSave() when "Yes, save progress" button is clicked', () => {
+    spyOn(component, 'onSave');
+    const saveButton = fixture.debugElement.queryAll(By.css('button'))[2].nativeElement;
+    saveButton.click();
+    expect(component.onSave).toHaveBeenCalled();
   });
 });

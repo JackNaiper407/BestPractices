@@ -43,36 +43,49 @@ export class EnrollmentComponent implements OnInit {
       });
   }
 
-  private loadProgramData() {
-    this.programResponse = this.customerEnrollmentService.getProgramDataById(this.programId ?? 0);
-    this.orderTypeResponse = this.customerEnrollmentService.getOrderTypesLookUpList();
+ import { forkJoin, of } from 'rxjs';
+import { switchMap, catchError } from 'rxjs/operators';
+import { CustomerEnrollmentService } from './customer-enrollment.service';
+import { ProgramData } from './models/program-data.model';
 
-    return forkJoin([this.programResponse, this.orderTypeResponse]).pipe(
-      catchError((err) => {
-        console.error('Error fetching program data:', err);
-        return of(null);
-      }),
-      switchMap(([programDataResult, orderTypesResult]) => {
-        if (programDataResult?.value?.length && orderTypesResult?.value?.length) {
-          const programData: ProgramData = new ProgramData();
-          programData.programOrderTypes = programDataResult?.value[0]?.programOrderTypes;
-          programData.programFormularies = programDataResult?.value[0]?.programFormularies;
-          programData.startDate = new Date(programDataResult?.value[0]?.startDate);
-          programData.endDate = new Date(programDataResult?.value[0]?.endDate);
-          this.programData = programData;
+private loadProgramData() {
+  this.programResponse = this.customerEnrollmentService.getProgramDataById(this.programId ?? 0).pipe(
+    catchError((err) => {
+      console.error('Error fetching program data:', err);
+      return of({ value: [] }); // Return an empty array as a fallback
+    })
+  );
 
-          // Map order types
-          this.orderTypesLookUp = orderTypesResult.value.map(({ orderTypeCode, orderTypeName }: any) => ({
-            value: orderTypeCode,
-            description: orderTypeName,
-          }));
+  this.orderTypeResponse = this.customerEnrollmentService.getOrderTypesLookUpList().pipe(
+    catchError((err) => {
+      console.error('Error fetching order types:', err);
+      return of({ value: [] }); // Return an empty array as a fallback
+    })
+  );
 
-          this.cdr.detectChanges();
-        }
-        return of(true); // Indicate completion
-      })
-    );
-  }
+  return forkJoin([this.programResponse, this.orderTypeResponse]).pipe(
+    switchMap(([programDataResult, orderTypesResult]) => {
+      if (programDataResult?.value?.length && orderTypesResult?.value?.length) {
+        const programData: ProgramData = new ProgramData();
+        programData.programOrderTypes = programDataResult.value[0]?.programOrderTypes;
+        programData.programFormularies = programDataResult.value[0]?.programFormularies;
+        programData.startDate = new Date(programDataResult.value[0]?.startDate);
+        programData.endDate = new Date(programDataResult.value[0]?.endDate);
+        this.programData = programData;
+
+        // Map order types
+        this.orderTypesLookUp = orderTypesResult.value.map(({ orderTypeCode, orderTypeName }: any) => ({
+          value: orderTypeCode,
+          description: orderTypeName,
+        }));
+
+        this.cdr.detectChanges();
+      }
+      return of(true); // Indicate completion
+    })
+  );
+}
+
 
   private loadEnrollmentData() {
     return this.customerEnrollmentService.getEnrollmentById(this.enrollmentId).pipe(

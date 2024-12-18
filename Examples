@@ -1,57 +1,49 @@
-import { Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { CustomerEnrollmentData } from './customer-enrollment-data.model';
-import { CustomerEnrollmentSettings } from './customer-enrollment-settings.model';
-import { EnrollmentGroupData, GroupAccountsData } from './enrollment-group-data.model';
-
-@Injectable({
-  providedIn: 'root'
-})
-export class EnrollmentService {
-  constructor() {}
-
-  getEnrollmentById(id: number): Observable<CustomerEnrollmentData> {
-    // Mock CustomerEnrollmentData
-    const mockData: CustomerEnrollmentData = {
-      customerId: id,
-      customerName: 'John Doe',
-      programId: 101,
-      programCode: 'PROG-001',
-      programName: 'Mock Program',
-      customerEnrollmentSettings: {
-        customerId: id,
-        programId: 101,
-        billingType: 'Monthly',
-        contractStartDate: new Date('2024-01-01'),
-        contractEndDate: new Date('2025-01-01'),
-        contractOrderTypes: ['Standard', 'Premium'],
-        endOfContractAction: 'Renew',
-        formularyType: ['Basic', 'Advanced']
-      } as CustomerEnrollmentSettings,
-      enrollmentGroups: [
+ getEnrollmentById(id: number): Observable<ODataResponse> {
+    // Simulated OData-style response
+    const mockResponse: ODataResponse = {
+      count: 1,
+      value: [
         {
-          enrollmentGroupId: 1,
-          enrollmentId: id,
-          groupName: 'Group A',
-          externalSBPNumber: 'SBP-12345',
-          groupAccounts: [
+          customerId: id,
+          customerName: 'John Doe',
+          programId: 101,
+          programCode: 'PROG-001',
+          programName: 'Mock Program',
+          customerEnrollmentSettings: {
+            customerId: id,
+            programId: 101,
+            billingType: 'Monthly',
+            contractStartDate: new Date('2024-01-01'),
+            contractEndDate: new Date('2025-01-01'),
+            contractOrderTypes: ['Standard', 'Premium'],
+            endOfContractAction: 'Renew',
+            formularyType: ['Basic', 'Advanced']
+          } as CustomerEnrollmentSettings,
+          enrollmentGroups: [
             {
-              enrollmentAccountId: 1001,
-              accountId: 5001,
-              accountNumber: 789123,
               enrollmentGroupId: 1,
-              shipToAccount: 'Account A',
-              distributionCenter: 'Center 1',
-              accountStatus: 'Active',
-              accountGoLiveDate: new Date('2024-02-01'),
-              accountCutOffDate: new Date('2025-02-01')
-            }
+              enrollmentId: id,
+              groupName: 'Group A',
+              externalSBPNumber: 'SBP-12345',
+              groupAccounts: [
+                {
+                  enrollmentAccountId: 1001,
+                  accountId: 5001,
+                  accountNumber: 789123,
+                  enrollmentGroupId: 1,
+                  shipToAccount: 'Account A',
+                  distributionCenter: 'Center 1',
+                  accountStatus: 'Active',
+                  accountGoLiveDate: new Date('2024-02-01'),
+                  accountCutOffDate: new Date('2025-02-01')
+                } as GroupAccountsData
+              ]
+            } as EnrollmentGroupData
           ]
-        } as EnrollmentGroupData
+        } as CustomerEnrollmentData
       ]
     };
 
-    // Simulate an HTTP response using `of`
-    return of(mockData);
+    // Return the mock OData response as an Observable
+    return of(mockResponse);
   }
-}
